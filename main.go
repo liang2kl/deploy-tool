@@ -45,17 +45,18 @@ func updateHandler(c *gin.Context) {
 	service := c.Param("service")
 	branch := c.Param("branch")
 
-	name, dockerService := getInfo(service)
+	projectDir := getInfo(service)
 
-	if name == "" || branch == "" {
-		sendResponse(c, http.StatusBadRequest, "invalid argument")
+	if projectDir == "" || branch == "" {
+		sendResponse(c, http.StatusBadRequest, "invalid arguments")
 		return
 	}
 
 	script := viper.GetString("script")
-	projectDir := viper.GetString("project-dir")
+	dockerComposeDir := viper.GetString("docker-compose-dir")
+	// projectDir := viper.GetString("project-dir")
 
-	cmd := exec.Command("sh", script, projectDir, name, branch, dockerService)
+	cmd := exec.Command("sh", script, projectDir, dockerComposeDir, branch, service)
 	stdout, err := cmd.Output()
 
 	log.Println(string(stdout))
@@ -69,13 +70,13 @@ func updateHandler(c *gin.Context) {
 	sendResponse(c, http.StatusOK, "success")
 }
 
-func getInfo(serviceName string) (string, string) {
+func getInfo(serviceName string) string {
 	projects := viper.GetStringMapString("projects")
 	dir, ok := projects[serviceName]
 	if !ok {
-		return "", ""
+		return ""
 	}
-	return serviceName, dir
+	return dir
 }
 
 func sendResponse(c *gin.Context, code int, msg string) {
