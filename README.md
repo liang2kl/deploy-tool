@@ -10,9 +10,9 @@ curl https://example.com/update/backend/dev
 
 ## Prerequisites
 
-- 将项目克隆到本地
-- 设置访问 remote 的用户名和密码
-- 配置 docker-compose
+- 需要将软工 GitLab 上的仓库克隆到本地
+- 需要设置好访问 remote 的用户名和密码
+- 需要配置 docker-compose
 
 其中，`docker-compose.yml` 文件应包含需要更新的所有服务。例如，项目包含前端和后端：
 
