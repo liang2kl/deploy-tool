@@ -23,7 +23,7 @@ func main() {
 	}
 
 	router := gin.Default()
-	router.GET("/update/:service/:branch", updateHandler)
+	router.GET("/update/:service/*branch", updateHandler)
 
 	hostname := viper.GetString("hostname")
 	port := viper.GetInt("port")
@@ -32,32 +32,30 @@ func main() {
 }
 
 func updateHandler(c *gin.Context) {
-	latestTime := lastTime
-
 	threshold := viper.GetDuration("interval")
 
-	if time.Since(latestTime) < threshold {
+	if time.Since(lastTime) < threshold {
 		sendResponse(c, http.StatusBadRequest, "access too frequent")
 		return
 	}
-
-	lastTime = time.Now()
 
 	service := c.Param("service")
 	branch := c.Param("branch")
 
 	projectDir := getInfo(service)
 
-	if projectDir == "" || branch == "" {
+	if projectDir == "" || branch == "/" || branch == "" {
 		sendResponse(c, http.StatusBadRequest, "invalid arguments")
 		return
 	}
+
+	lastTime = time.Now()
 
 	script := viper.GetString("script")
 	dockerComposeDir := viper.GetString("docker-compose-file")
 	// projectDir := viper.GetString("project-dir")
 
-	cmd := exec.Command("sh", script, projectDir, dockerComposeDir, branch, service)
+	cmd := exec.Command("sh", script, projectDir, dockerComposeDir, branch[1:], service)
 	log.Println(cmd.String())
 
 	var stderr bytes.Buffer
