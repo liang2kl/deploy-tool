@@ -1,6 +1,6 @@
 hostname: '127.0.0.1'
 port: 8100
-docker-compose-dir: ../deploy
+docker-compose-file: ./docker-compose.yml
 projects:
   service: ../service
   push-service: ../service

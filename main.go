@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"log"
 	"net/http"
@@ -53,17 +54,21 @@ func updateHandler(c *gin.Context) {
 	}
 
 	script := viper.GetString("script")
-	dockerComposeDir := viper.GetString("docker-compose-dir")
+	dockerComposeDir := viper.GetString("docker-compose-file")
 	// projectDir := viper.GetString("project-dir")
 
 	cmd := exec.Command("sh", script, projectDir, dockerComposeDir, branch, service)
-	stdout, err := cmd.Output()
+	log.Println(cmd.String())
 
-	log.Println(string(stdout))
+	var stderr bytes.Buffer
+	cmd.Stderr = &stderr
+
+	err := cmd.Run()
 
 	if err != nil {
-		log.Println(err)
-		sendResponse(c, http.StatusBadRequest, err.Error())
+		msg := fmt.Sprintf("error: %s; output: %s", err.Error(), stderr.String())
+		log.Println(msg)
+		sendResponse(c, http.StatusBadRequest, msg)
 		return
 	}
 
