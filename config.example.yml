@@ -1,0 +1,12 @@
+hostname: '127.0.0.1'
+port: 8100
+project-dir: ../..
+docker-compose-dir: ../../deploy
+projects:
+  service: service
+  push-service: service
+  test-service: service
+  frontend: frontend
+  backend: backend
+script: ./update.sh
+interval: 60s
