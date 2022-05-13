@@ -44,14 +44,6 @@ script: ./update.sh # 更新使用的脚本
 interval: 60s # 两次更新之间的最小时间间隔
 ```
 
-发送请求：
-
-```
-curl https://example.com/update/<service_name>/<branch>
-```
-
-接收到请求时，此程序会根据 `projects` 中给出的 git 目录拉取给定 branch，并使用 docker-compose 重新 build 并部署对应的服务。
-
 编译（需要 go 1.17）：
 
 ```
@@ -64,3 +56,11 @@ go build -o bot
 ```
 ./bot
 ```
+
+发送请求：
+
+```
+curl https://example.com/update/<service_name>/<branch>
+```
+
+接收到请求时，此程序会根据 `projects` 中给出的 git 目录拉取给定 branch，并使用 docker-compose 重新 build 并部署对应的服务。
