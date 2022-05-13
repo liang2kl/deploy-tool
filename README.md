@@ -57,10 +57,17 @@ go build -o bot
 ./bot
 ```
 
-发送请求：
+查看 log：
+
+```
+curl https://example.com/log/<service_name>
+```
+
+发送更新请求：
 
 ```
 curl https://example.com/update/<service_name>/<branch>
 ```
 
 接收到请求时，此程序会根据 `projects` 中给出的 git 目录拉取给定 branch，并使用 docker-compose 重新 build 并部署对应的服务。
+
