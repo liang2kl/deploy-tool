@@ -28,6 +28,12 @@ services:
     ...
 ```
 
+另外，对于 Linux 系统，当前用户需要在 `docker` 用户组中，从而可以用非 root 身份运行 docker 命令：
+
+```
+sudo usermod -aG docker $USER
+```
+
 ## Usage
 
 创建 `config.yml`：
