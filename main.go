@@ -1,23 +1,17 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
 	"log"
 	"net/http"
 	"os/exec"
-	"regexp"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
 )
 
-// Remove ANSI escape codes from strings
-const ansi = "[\u001B\u009B][[\\]()#;?]*(?:(?:(?:[a-zA-Z\\d]*(?:;[a-zA-Z\\d]*)*)?\u0007)|(?:(?:\\d{1,4}(?:;\\d{0,4})*)?[\\dA-PRZcf-ntqry=><~]))"
-
 var lastTime time.Time = time.Now().Add(time.Hour * -1)
-var re = regexp.MustCompile(ansi)
 
 func main() {
 	viper.SetConfigFile("config.yml")
@@ -39,7 +33,7 @@ func updateHandler(c *gin.Context) {
 	threshold := viper.GetDuration("interval")
 
 	if time.Since(lastTime) < threshold {
-		sendResponse(c, http.StatusBadRequest, "access too frequent", "")
+		c.String(http.StatusBadRequest, "access too frequent")
 		return
 	}
 
@@ -49,12 +43,12 @@ func updateHandler(c *gin.Context) {
 	projectDir := getDirectory(service)
 
 	if projectDir == "" {
-		sendResponse(c, http.StatusBadRequest, "the service does not exist", "")
+		c.String(http.StatusBadRequest, "the service does not exist")
 		return
 	}
 
 	if branch == "/" || branch == "" {
-		sendResponse(c, http.StatusBadRequest, "invalid branch name", "")
+		c.String(http.StatusBadRequest, "invalid branch name")
 		return
 	}
 
@@ -72,7 +66,7 @@ func logHandler(c *gin.Context) {
 
 	// Just to check if the service is valid
 	if dir := getDirectory(service); dir == "" {
-		sendResponse(c, http.StatusBadRequest, "the service does not exist", "")
+		c.String(http.StatusBadRequest, "the service does not exist")
 		return
 	}
 
@@ -84,25 +78,18 @@ func logHandler(c *gin.Context) {
 
 func runCommand(c *gin.Context, cmd *exec.Cmd) {
 	log.Println(cmd.String())
+	outputData, err := cmd.CombinedOutput()
 
-	var stderr, stdout bytes.Buffer
-
-	cmd.Stderr = &stderr
-	cmd.Stdout = &stdout
-
-	err := cmd.Run()
+	output := string(outputData)
 
 	if err != nil {
-		escapedErr := re.ReplaceAllString(stderr.String(), "")
-		msg := fmt.Sprintf("error: %s; output: %s", err.Error(), escapedErr)
+		msg := fmt.Sprintf("error: %s; output: %s", err.Error(), output)
 		log.Println(msg)
-		sendResponse(c, http.StatusBadRequest, err.Error(), escapedErr)
+		c.String(http.StatusBadRequest, "error!\n----detail----\n%s", output)
 		return
 	}
 
-	escapedOut := re.ReplaceAllString(stdout.String(), "")
-
-	sendResponse(c, http.StatusOK, "success", escapedOut)
+	c.String(http.StatusOK, "success\n----output----\n%s", output)
 }
 
 func getDirectory(serviceName string) string {
@@ -112,14 +99,4 @@ func getDirectory(serviceName string) string {
 		return ""
 	}
 	return dir
-}
-
-func sendResponse(c *gin.Context, code int, msg string, output string) {
-	data := map[string]interface{}{
-		"message": msg,
-	}
-	if output != "" {
-		data["output"] = output
-	}
-	c.JSON(code, data)
 }
